@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LinkedIn Employee Scraper</title>
+  <style>
+    body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f9f9f9; }
+    .box { padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+    input, button { margin: 10px 0; padding: 10px; width: 100%; }
+    button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🔍 LinkedIn Employee Scraper</h2>
+    <input type="text" id="companyInput" placeholder="Enter company name..." />
+    <button onclick="startScraping()">Start Scraping</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function startScraping() {
+      const company = document.getElementById('companyInput').value;
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerText = '⏳ Scraping...';
+
+      try {
+        const res = await fetch('/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ company })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          resultDiv.innerText = JSON.stringify(data.data, null, 2);
+        } else {
+          resultDiv.innerText = '❌ Error: ' + data.error;
+        }
+      } catch (err) {
+        resultDiv.innerText = '❌ Error occurred. Please try again later.';
+      }
+    }
+  </script>
+</body>
+</html>
