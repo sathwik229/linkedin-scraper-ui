@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import puppeteer from 'puppeteer';
 import { scrapeCompany } from './scraper.js';
 import { downloadCookiesFromGCS } from './cookiesLoader.js';
 
@@ -54,20 +55,31 @@ app.post('/scrape', async (req, res) => {
     return res.status(400).json({ error: 'Company name is required' });
   }
 
+  let browser;
   try {
+    // 1. Launch Puppeteer
+    browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: true,
+    });
+    const page = await browser.newPage();
+
+    // 2. Download and set cookies
     const cookies = await downloadCookiesFromGCS();
+    await page.setCookie(...cookies);
 
-    // ⛔ NOTE: Puppeteer page must exist
-    // You should call `puppeteer.launch()` and `page = await browser.newPage()` somewhere
-    const page = await globalThis.page; // Adjust this as per your Puppeteer setup
+    // 3. Your scraping logic here (replace with your actual logic)
+    // Example: await page.goto('https://www.linkedin.com/company/' + encodeURIComponent(company));
+    // const data = await page.evaluate(() => { /* ... */ });
+    // For now, just return a placeholder
+    const data = { message: `Scraping for company: ${company} (implement logic)` };
 
-    for (const cookie of cookies) {
-      await page.setCookie(cookie);
-    }
+    // 4. Close browser
+    await browser.close();
 
-    const result = await scrapeCompany(company);
-    res.json({ status: 'success', data: result });
+    res.json({ status: 'success', data });
   } catch (err) {
+    if (browser) await browser.close();
     console.error('❌ Scrape error:', err.message);
     res.status(500).json({ error: 'Failed to scrape company info', details: err.message });
   }
