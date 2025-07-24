@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { scrapeCompany } from './scraper.js';
+const { downloadCookiesFromGCS } = require('./cookiesLoader');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,8 +13,6 @@ const PORT = process.env.PORT || 8080;
 
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
-  'https://linkedin-scraper-ui-84750544973.europe-west1.run.app',
-  'https://linkedin-scraper-ui.onrender.com', // <-- Added Render frontend
   'http://localhost:3000',
   'http://localhost:8080'
 ];
@@ -51,6 +50,13 @@ app.post('/scrape', async (req, res) => {
   }
 
   try {
+    const cookies = await downloadCookiesFromGCS();
+
+    // Use cookies in Puppeteer or Playwright
+    for (const cookie of cookies) {
+      await page.setCookie(cookie);
+    }
+
     const result = await scrapeCompany(company);
     res.json({ status: 'success', data: result });
   } catch (err) {
