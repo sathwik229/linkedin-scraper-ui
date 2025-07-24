@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 8080;
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
   'https://linkedin-scraper-ui-84750544973.europe-west1.run.app',
+  'https://linkedin-scraper-ui.onrender.com', // <-- Added Render frontend
   'http://localhost:3000',
   'http://localhost:8080'
 ];
