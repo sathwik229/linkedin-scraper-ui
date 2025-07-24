@@ -3,13 +3,22 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { scrapeCompany } from './scraper.js';
-const { downloadCookiesFromGCS } = require('./cookiesLoader');
+import { downloadCookiesFromGCS } from './cookiesLoader.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+console.log('SCRIPT LOADING!');
+console.log('🚀 Script started...');
+
+// Example usage on startup
+(async () => {
+  const cookies = await downloadCookiesFromGCS();
+  // Use cookies in puppeteer or your scraping logic
+})();
 
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
