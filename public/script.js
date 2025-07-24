@@ -2,7 +2,7 @@
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const backendBase = isLocal
   ? 'http://localhost:8080'
-  : 'https://linkedin-scraper-xxxxxx-uc.a.run.app'; // <-- Replace with your actual Cloud Run URL
+  : 'https://linkedin-scraper-ui-84750544973.europe-west1.run.app';
 
 document.getElementById("startButton").addEventListener("click", async () => {
   const company = document.getElementById("company").value.trim();
