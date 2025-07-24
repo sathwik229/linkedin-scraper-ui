@@ -10,17 +10,37 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// ✅ Enable CORS for all routes
-app.use(cors());
-app.options('*', cors()); // <-- ✅ CORS preflight fix
+// ✅ Allowed origins for CORS
+const allowedOrigins = [
+  'https://linkedin-scraper-ui-84750544973.europe-west1.run.app',
+  'http://localhost:3000',
+  'http://localhost:8080'
+];
 
-// Body parser
+// ✅ CORS middleware
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // Allow Postman/curl
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS not allowed from this origin'), false);
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// ✅ Handle preflight OPTIONS requests
+app.options('*', cors());
+
+// ✅ Body parser
 app.use(express.json());
 
-// Static frontend
+// ✅ Serve static frontend files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ Scrape route
+// ✅ Scrape endpoint
 app.post('/scrape', async (req, res) => {
   console.log('📥 Received /scrape request:', req.body);
   const { company } = req.body;
@@ -38,12 +58,12 @@ app.post('/scrape', async (req, res) => {
   }
 });
 
-// Default route
+// ✅ Catch-all route for SPA (frontend routing)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
