@@ -68,16 +68,19 @@ app.post('/scrape', async (req, res) => {
     const cookies = await downloadCookiesFromGCS();
     await page.setCookie(...cookies);
 
-    // 3. Your scraping logic here (replace with your actual logic)
-    // Example: await page.goto('https://www.linkedin.com/company/' + encodeURIComponent(company));
-    // const data = await page.evaluate(() => { /* ... */ });
-    // For now, just return a placeholder
-    const data = { message: `Scraping for company: ${company} (implement logic)` };
+    // 3. Go to the LinkedIn company "People" page
+    await page.goto(`https://www.linkedin.com/company/${encodeURIComponent(company)}/people/`, { waitUntil: 'networkidle2' });
 
-    // 4. Close browser
+    // 4. Scrape employee names (update selector as needed)
+    const employees = await page.evaluate(() => {
+      const nodes = document.querySelectorAll('.org-people-profile-card__profile-title');
+      return Array.from(nodes).map(node => ({
+        name: node.innerText.trim(),
+      }));
+    });
+
     await browser.close();
-
-    res.json({ status: 'success', data });
+    res.json({ results: employees });
   } catch (err) {
     if (browser) await browser.close();
     console.error('❌ Scrape error:', err.message);
