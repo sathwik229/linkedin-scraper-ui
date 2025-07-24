@@ -14,25 +14,21 @@ const PORT = process.env.PORT || 8080;
 console.log('SCRIPT LOADING!');
 console.log('🚀 Script started...');
 
-// Example usage on startup
-(async () => {
-  const cookies = await downloadCookiesFromGCS();
-  // Use cookies in puppeteer or your scraping logic
-})();
-
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
   'http://localhost:3000',
-  'http://localhost:8080'
+  'http://localhost:8080',
+  'https://linkedin-scraper-ui-84750544973.europe-west1.run.app' // Cloud Run URL
 ];
 
 // ✅ CORS middleware
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // Allow Postman/curl
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Allow Postman, curl, etc.
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
+      console.warn(`❌ CORS blocked from origin: ${origin}`);
       return callback(new Error('CORS not allowed from this origin'), false);
     }
   },
@@ -46,7 +42,7 @@ app.options('*', cors());
 // ✅ Body parser
 app.use(express.json());
 
-// ✅ Serve static frontend files
+// ✅ Serve frontend files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ✅ Scrape endpoint
@@ -55,13 +51,16 @@ app.post('/scrape', async (req, res) => {
   const { company } = req.body;
 
   if (!company) {
-    return res.status(400).json({ error: 'Company name required' });
+    return res.status(400).json({ error: 'Company name is required' });
   }
 
   try {
     const cookies = await downloadCookiesFromGCS();
 
-    // Use cookies in Puppeteer or Playwright
+    // ⛔ NOTE: Puppeteer page must exist
+    // You should call `puppeteer.launch()` and `page = await browser.newPage()` somewhere
+    const page = await globalThis.page; // Adjust this as per your Puppeteer setup
+
     for (const cookie of cookies) {
       await page.setCookie(cookie);
     }
@@ -74,12 +73,12 @@ app.post('/scrape', async (req, res) => {
   }
 });
 
-// ✅ Catch-all route for SPA (frontend routing)
+// ✅ SPA fallback (if frontend uses routing)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ✅ Start server
+// ✅ Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
